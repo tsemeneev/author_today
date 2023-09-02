@@ -102,13 +102,30 @@ class Parser:
             driver.get(link)
             title = driver.find_element(By.XPATH, '//h1[@class="book-title"]').text
             author = driver.find_element(By.CLASS_NAME, 'book-authors').text
-            genres = driver.find_element(By.CLASS_NAME, 'book-genres').text
+            genres = driver.find_element(By.CLASS_NAME, 'book-genres').find_elements(
+                By.TAG_NAME, 'a')[1:]
+            print(len(genres))
+            try:
+                genre_1 = genres[0].text
+            except IndexError:
+                genre_1 = 'Не указан'
+            try:
+                genre_2 = genres[1].text
+            except IndexError:
+                genre_2 = 'Не указан'
+            try:
+                genre_3 = genres[2].text
+            except IndexError:
+                genre_3 = 'Не указан'
+
             tags = driver.find_elements(By.CLASS_NAME, 'tags')
-            if len(tags) == 0:
-                tags = "Не указаны"
-            else:
+            if len(tags) > 0:
                 tags = tags[0].find_elements(By.TAG_NAME, 'a')
-                tags = ", ".join([tag.text for tag in tags][0:8])
+                tag_list = get_tags(tags)
+            else:
+                tag_list = ['Не указан', 'Не указан', 'Не указан', 'Не указан',
+                            'Не указан', 'Не указан', 'Не указан', 'Не указан']
+
             price = driver.find_elements(By.XPATH, '//span[@data-bind="html: priceText"]')
             if price[0].text == '':
                 price = 'Цена не указана'
@@ -121,8 +138,46 @@ class Parser:
             rewards = driver.find_element(By.XPATH, '//div[@class="col-xs-3"]').find_element(
                 By.CLASS_NAME, 'panel-heading').find_elements(By.TAG_NAME, 'a')[1].text
 
-            data = [[title, author, genres, tags, price, views, likes, rewards]]
+            data = [[title, author, price, views, likes, rewards, genre_1, genre_2, genre_3, tag_list[0],
+                     tag_list[1], tag_list[2], tag_list[3], tag_list[4], tag_list[5], tag_list[6], tag_list[7]]]
             add_data_to_excel(data, category)
+
+
+def get_tags(list_tags):
+    try:
+        tag_1 = list_tags[0].text
+    except IndexError:
+        tag_1 = 'Не указан'
+    try:
+        tag_2 = list_tags[1].text
+    except IndexError:
+        tag_2 = 'Не указан'
+    try:
+        tag_3 = list_tags[2].text
+    except IndexError:
+        tag_3 = 'Не указан'
+    try:
+        tag_4 = list_tags[3].text
+    except IndexError:
+        tag_4 = 'Не указан'
+    try:
+        tag_5 = list_tags[4].text
+    except IndexError:
+        tag_5 = 'Не указан'
+    try:
+        tag_6 = list_tags[5].text
+    except IndexError:
+        tag_6 = 'Не указан'
+    try:
+        tag_7 = list_tags[6].text
+    except IndexError:
+        tag_7 = 'Не указан'
+    try:
+        tag_8 = list_tags[7].text
+    except IndexError:
+        tag_8 = 'Не указан'
+
+    return [tag_1, tag_2, tag_3, tag_4, tag_5, tag_6, tag_7, tag_8]
 
 
 parser = Parser()
