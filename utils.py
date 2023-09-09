@@ -5,13 +5,13 @@ from openpyxl.workbook import Workbook
 
 
 def add_data_to_excel(data, title):
-    workbook = load_workbook(f'{title}.xlsx')
+    workbook = load_workbook(rf'.\docs\{title}.xlsx')
     sheet = workbook.active
 
     for row in data:
         sheet.append(row)
 
-    workbook.save(f'{title}.xlsx')
+    workbook.save(rf'.\docs\{title}.xlsx')
 
 
 def create_excel(category):
@@ -35,4 +35,4 @@ def create_excel(category):
     ws['P1'] = 'Тег 7'
     ws['Q1'] = 'Тег 8'
 
-    wb.save(f'{category}.xlsx')
+    wb.save(rf'.\docs\{category}.xlsx')

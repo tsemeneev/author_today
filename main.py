@@ -10,7 +10,7 @@ from utils import create_excel, add_data_to_excel
 class Parser:
     def __init__(self):
         self.options = webdriver.ChromeOptions()
-        self.options.add_argument('--headless')
+        # self.options.add_argument('--headless')
         self.options.add_experimental_option('excludeSwitches', ['enable-automation'])
         self.options.add_experimental_option('useAutomationExtension', False)
         self.options.add_argument('--disable-blink-features=AutomationControlled')
@@ -33,16 +33,18 @@ class Parser:
         return driver
 
     def main(self):
-        self.parse_popular()
-        self.get_hot()
-        self.get_bestseller()
-
-    def parse_popular(self):
         driver = self.del_humanity_check()
         driver.maximize_window()
-        driver.get('https://author.today/')
+        self.get_popular(driver)
+        self.get_hot(driver)
+        self.get_bestseller(driver)
+        driver.close()
+        driver.quit()
 
+    def get_popular(self, driver):
+        driver.get('https://author.today/')
         listing = []
+        time.sleep(1)
         for i in range(6):
             books = driver.find_element(By.ID, 'mostPopularWorks').find_element(
                 By.CLASS_NAME, 'slick-track').find_elements(
@@ -51,15 +53,11 @@ class Parser:
                 listing.append(book.get_attribute('href'))
             driver.find_element(By.XPATH, '//button[@aria-label="Next"]').click()
             time.sleep(1)
-        self.parse_book_info('popular', list(set(listing)))
-        driver.close()
-        driver.quit()
+        self.parse_book_info('popular', list(set(listing)), driver)
 
-    def get_hot(self):
-        driver = self.del_humanity_check()
-        driver.maximize_window()
+    def get_hot(self, driver):
+        time.sleep(1)
         driver.get('https://author.today/')
-
         listing = []
         for i in range(6):
             books = driver.find_element(By.ID, 'hotWorks').find_element(
@@ -71,13 +69,10 @@ class Parser:
 
             driver.find_elements(By.XPATH, '//button[@aria-label="Next"]')[1].click()
             time.sleep(1)
-        self.parse_book_info('hot', list(set(listing)))
-        driver.close()
-        driver.quit()
+        self.parse_book_info('hot', list(set(listing)), driver)
 
-    def get_bestseller(self):
-        driver = self.del_humanity_check()
-        driver.maximize_window()
+    def get_bestseller(self, driver):
+        time.sleep(1)
         driver.get('https://author.today/')
         actions = webdriver.ActionChains(driver)
         actions.key_down(Keys.PAGE_DOWN).key_up(Keys.PAGE_DOWN).perform()
@@ -90,14 +85,11 @@ class Parser:
                 listing.append(book.get_attribute('href'))
             driver.find_elements(By.XPATH, '//button[@aria-label="Next"]')[3].click()
             time.sleep(1)
-        self.parse_book_info('bestsellers', list(set(listing)))
-        driver.close()
-        driver.quit()
+        self.parse_book_info('bestsellers', list(set(listing)), driver)
 
-    def parse_book_info(self, category, links):
+    def parse_book_info(self, category, links, driver):
         create_excel(category)
-        driver = self.del_humanity_check()
-        driver.maximize_window()
+
         for link in links:
             driver.get(link)
             title = driver.find_element(By.XPATH, '//h1[@class="book-title"]').text
@@ -136,7 +128,8 @@ class Parser:
             likes = driver.find_element(By.CLASS_NAME, 'book-stats').find_element(
                 By.XPATH, '//span[@class="like-count"]').text
             rewards = driver.find_element(By.XPATH, '//div[@class="col-xs-3"]').find_element(
-                By.CLASS_NAME, 'panel-heading').find_elements(By.TAG_NAME, 'a')[1].text
+                By.CLASS_NAME, 'panel-heading').find_elements(By.TAG_NAME, 'a')
+            rewards = 'Нет наград' if len(rewards) < 2 else rewards[1].text
 
             data = [[title, author, price, views, likes, rewards, genre_1, genre_2, genre_3, tag_list[0],
                      tag_list[1], tag_list[2], tag_list[3], tag_list[4], tag_list[5], tag_list[6], tag_list[7]]]
@@ -181,4 +174,3 @@ def get_tags(list_tags):
 
 
 parser = Parser()
-parser.main()
